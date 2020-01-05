@@ -5,8 +5,12 @@ var express     = require('express');
 var app         = express();
 var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
+var multer      = require('multer');
 
+
+var upload = multer({dest : '../upload/'});
 // [CONFIGURE APP TO USE bodyParser]
+// app.use(multer({dest:"../upload/"}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -19,11 +23,11 @@ db.once('open', function(){
     console.log("Connected to mongod server");
 });
 
-mongoose.connect('mongodb://localhost/yl', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost/proj2', { useNewUrlParser: true, useUnifiedTopology: true });
 
 // DEFINE MODEL
 // var Book = require('./models/book');
-var Book =  require('./models/book');
+var Image =  require('./models/image');
 
 // [CONFIGURE SERVER PORT]
 // var port = process.env.PORT || 8080;
@@ -31,7 +35,7 @@ var port = 80;
 
 // [CONFIGURE ROUTER]
 // console.log(app);
-var router = require('./routes')(app,Book);
+var router = require('./routes')(app,Image,upload);
 
 // [RUN SERVER]
 var server = app.listen(port, function(){
