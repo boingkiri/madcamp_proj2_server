@@ -13,6 +13,14 @@ var upload = multer({dest : '../upload/'});
 // app.use(multer({dest:"../upload/"}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(express.static(__dirname + '/..'))
+
+// Firebase SDK Initialize.
+// admin.initializeApp({
+//     credential: admin.credential.applicationDefault(),
+//     // databaseURL: 'https://<DATABASE_NAME>.firebaseio.com'
+//     databaseURL: 'mongodb://localhost/proj2'
+//   });
 
 
 // CONNECT TO MONGODB SERVER

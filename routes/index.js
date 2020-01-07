@@ -1,9 +1,24 @@
 // routes/index.js
 
-const request = require('request');
+const request   = require('request');
 var express     = require('express');
 var app         = express();
 var bodyParser  = require('body-parser');
+var FormData    = require('form-data')
+var http        = require('http');
+var fs          = require('fs');
+var admin       = require('firebase-admin');
+
+var app_firebase = admin.initializeApp();
+
+
+///
+var Board = require('../models/Board');
+var Building = require('../models/building');
+var Admin = require('../models/admin');
+var Problem = require('../models/problem');
+var Token      = require('../models/token');
+
 
 module.exports = function(app,Image,upload)
 {
@@ -11,136 +26,261 @@ module.exports = function(app,Image,upload)
         console.log(req);
     });
 
-    // // GET ALL BOOKS
-    // app.get('/api/books', function(req,res){
-    //     Book.find(function(err, books){
-    //         if(err) return res.status(500).send({error: 'database failure'});
-    //         res.json(books);
-    //     })
-    // });
-
-    // // GET SINGLE BOOK
-    // app.get('/api/books/:book_id', function(req, res){
-    //     res.end();
-    // });
-
-    // // GET BOOK BY AUTHOR
-    // app.get('/api/books/author/:author', function(req, res){
-    //     res.end();
-    // });
-
-    // // CREATE BOOK
-    // app.post('/api/books', function(req, res){
-    //     var book = new Book();        
-        
-    //     book.name = req.body.name;
-    //     book.author = req.body.author;
-    //     console.log(req.body);
-    //     // book.published_date = new Date(req.body.published_date);
-    //     book.save(function(err){
-    //         if(err){
-    //             console.error(err);
-    //             res.json({result: 0});
-    //             return;
-    //         }
-    //         res.json({result: 1});
-    //         console.log("Data successfully uploaded");
-    //     });
-    // });
-
-    // // UPDATE THE BOOK
-    // app.put('/api/books/:book_id', function(req, res){
-    //     res.end();
-    // });
-
-    // // DELETE BOOK
-    // app.delete('/api/books/:book_id', function(req, res){
-    //     res.end();
-    // });
-
     /* 업로드 요청 처리 */
 
- app.post("/upload", upload.array('image',10), function(req, res){
+    app.post("/upload", upload.array('image', 10), function(req, res){
     // console.log(req.file);
 
     // var title = req.body.title; // inputText의 name Value의 값을 가져옵니다.     
     
     for (var i = 0; i < req.files.length; i++){
         // var fileObj = req.files.myFile; // multer 모듈 덕분에​ req.files가 사용 가능합니다.  ​
-    var fileObj = req.files[i];
-    var orgFileName = fileObj.originalname; // 원본 파일명을 저장한다.(originalname은 fileObj의 속성)​​
-    var saveFileName = fileObj.filename; // 저장된 파일명​
-    var user_id = req.body.user_id;
-    
-    // console.log(title);
-    console.log(orgFileName);
-    console.log(saveFileName);
-    console.log(user_id);
+        var fileObj = req.files[i];
+        var orgFileName = fileObj.originalname; // 원본 파일명을 저장한다.(originalname은 fileObj의 속성)​​
+        var saveFileName = fileObj.filename; // 저장된 파일명​
+        var user_id = req.body.user_id;
+        
+        // console.log(title);
+        console.log(orgFileName);
+        console.log(saveFileName);
+        console.log(user_id);
 
-    // 추출한 데이터를 Object에 담는다.
-    // var obj = { "title": title, "orgFileName": orgFileName, "saveFileName": saveFileName };
-    var obj = {"orgFileName": orgFileName, "saveFileName": saveFileName, "user_id":user_id };
-    // DBData 객체에 담는다. (DBData는 moongoose의 schema를 모델화한 객체입니다.)​
-    var newData = new Image(obj);         
-    newData.save(function(err){ // DB에 저장한다.​
-        if(err) res.send(err); // 에러 확인
-        res.end("ok"); // 응답
-     }); 
-    }
-    
+        // 추출한 데이터를 Object에 담는다.
+        // var obj = { "title": title, "orgFileName": orgFileName, "saveFileName": saveFileName };
+        var obj = {"orgFileName": orgFileName, "saveFileName": saveFileName, "user_id" : user_id };
+        
+        var newData = new Image(obj);         
+        newData.save(function(err){ // DB에 저장한다.​
+            if(err) res.send(err); // 에러 확인
+            res.end("ok"); // 응답
+        });
+        }
     });
 
 
     /* Show all pictures to select */
 
-// app.get("/download/entire", function(req, res){
-//         // 요청시 해당 파일의 id값을 쿼리로 붙여서 전달합니다.(선택된 파일을 DB에서 찾기 위해)
-//         var _id = req.body.id;​
-//         // var _id = __id.id;
+    app.post("/download/entire", upload.array('image',10), function(req, res){
+        // 요청시 해당 파일의 id값을 쿼리로 붙여서 전달합니다.(선택된 파일을 DB에서 찾기 위해)
+        // var id = req.body.user_id;​
+        var id = req.body.user_id;
+        // var _id = __id.id;
+        console.log("/download/entire");
+        // console.log(req);
+        console.log(id);
 
-//         // id를 사용해 데이터를 찾음
-//         DBData.findOne({"_id":_id})
-//         .select("orgFileName saveFileName") // 해당파일의 원래이름과 저장된 이름을 가져옴
-//         .exec(function(err, data){ // 완료되면 찾은 데이터는 data에 담깁니다.      
-//         var filePath = __dirname + "/../upload/" + data.saveFileName; // 다운로드할 파일의 경로​      
-//         var fileName = data.orgFileName; // 원본파일명​
+        var file_list = new Array();
+        
+        Image.find({"user_id":id}, (err, result) => {
+            if (err) {
+              throw err;
+            }
+            // res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(fileName));
+            // res.setHeader("Content-Type","binary/octet-stream");  
 
-//         // 응답 헤더에 파일의 이름과 mime Type을 명시한다.(한글&특수문자,공백 처리)
-//         res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(fileName));
-//         res.setHeader("Content-Type","binary/octet-stream");  
+            for (var i = 0; i < result.length; i++){
+                console.log(result[i]);
+                console.log("ok");
+                var filePath = __dirname + "/../../upload/" + result[i].saveFileName; // 다운로드할 파일의 경로​      
+                var fileName = result[i].orgFileName; // 원본파일명​
+                
+                // 응답 헤더에 파일의 이름과 mime Type을 명시한다.(한글&특수문자,공백 처리)
+                var file_object = new Object();
+                file_object.filename = result[i].saveFileName;
+                file_list.push(file_object);
+            }
+            var jsonData = JSON.stringify(file_list);
+            console.log(jsonData);
+            res.send(jsonData);
 
-//         // filePath에 있는 파일 스트림 객체를 얻어온다.(바이트 알갱이를 읽어옵니다.)
-//         var fileStream = fs.createReadStream(filePath);
+          });
+        });
+    
+    app.get('/download/show', function(req,res){
+        const imgUrl = "../upload/"
+        var filename = req.query.filename;
+        console.log(filename);
+        result = imgUrl + filename;
+        fs.readFile(result,function(err, data){
+            res.writeHead(200, {"Context-Type":"image/jpg"});
+            res.write(data);
+            res.end();
+        });
+        // res.send(result);
+    });
+    
+    app.post('/download/elem', function(req,res){
+        const imgUrl = "http://192.249.19.254:7280/upload/"
+        var filename = req.body.filename;
+        console.log(filename);
+        result = imgUrl + filename;
+        res.send(result);
+    });
 
-//         // 다운로드 한다.(res 객체에 바이트알갱이를 전송한다)
-//         fileStream.pipe(res);  
-//     });
-//   });
 
-    /* 다운로드 요청 처리 */
+    app.get('/toilet/board',function(req, res){
+        var user_id = req.body.user_id;
+        var building = req.body.building;
+        var floor = req.body.floor;
+        var problem = req.body.problem;
+        var memo = req.body.memo;
 
-//  app.get("/download", function(req, res){
-//         // 요청시 해당 파일의 id값을 쿼리로 붙여서 전달합니다.(선택된 파일을 DB에서 찾기 위해)
-//         var _id = req.query.id;​
+        // var obj = {"User_id" : user_id, "Building" : building , "Floor" : floor,
+        //             "Problem" : problem, "Memo" : memo};
+        Board.find({}, (err, result) => {
+            if (err) {
+              throw err;
+            }
+            // res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(fileName));
+            // res.setHeader("Content-Type","binary/octet-stream");  
 
-//         // id를 사용해 데이터를 찾음
-//         DBData.findOne({"_id":_id})
-//         .select("orgFileName saveFileName") // 해당파일의 원래이름과 저장된 이름을 가져옴
-//         .exec(function(err, data){ // 완료되면 찾은 데이터는 data에 담깁니다.      
-//         var filePath = __dirname + "/../upload/" + data.saveFileName; // 다운로드할 파일의 경로​      
-//         var fileName = data.orgFileName; // 원본파일명​
+            var file_list = new Array();
+            for (var i = 0; i < result.length; i++){
+                console.log(result[i]);
+                console.log("ok");
 
-//         // 응답 헤더에 파일의 이름과 mime Type을 명시한다.(한글&특수문자,공백 처리)
-//         res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(fileName));
-//         res.setHeader("Content-Type","binary/octet-stream");  
+                file_list.push(result[i]);
+            }
+            var jsonData = JSON.stringify(file_list);
+            console.log(jsonData);
+            res.send(jsonData);
+          });
+    });
 
-//         // filePath에 있는 파일 스트림 객체를 얻어온다.(바이트 알갱이를 읽어옵니다.)
-//         var fileStream = fs.createReadStream(filePath);
+    app.post('/toilet/board',function(req, res){
+        var user_id = req.body.user_id;
+        var building = req.body.building;
+        var floor = req.body.floor;
+        var problem = req.body.problem;
+        var memo = req.body.memo;
+        console.log("Post board");
 
-//         // 다운로드 한다.(res 객체에 바이트알갱이를 전송한다)
-//         fileStream.pipe(res);  
-//     });
-//   });
+        var obj = {"Building" : building , "Floor" : floor, "Problem" : problem};
+        var newData = new Board(obj);
+        newData.save(function(err){
+            if (err) res.send(err);
+            res.send("ok");
+        });
+
+    });
+
+
+    app.delete('/toilet/board',function(req, res){
+        var user_id = req.body.user_id;
+        var building = req.body.building;
+        var floor = req.body.floor;
+        var problem = req.body.problem;
+        var memo = req.body.memo;
+        console.log("delete getin");
+        console.log(req.body);
+        console.log(building);
+        console.log(floor);
+        console.log(problem);
+
+        var obj = {"Building" : building , "Floor" : floor, "Problem" : problem};
+        if (building == null || floor == null || problem == null){
+            res.send('no body');
+            return;
+        }
+        Board.deleteOne(obj, function(err, data){
+            if (err) {
+                res.send(err);
+                console.log("Delete fail");
+            }
+            else{
+                // Board.(data, function(err,))
+                res.send('ok');
+                console.log("Delete Success");
+            }
+        });
+        // res.send('not good');
+        
+
+    });
+
+    
+
+    app.post('/toilet/isadmin',function(req, res){
+        var id = req.body.id;
+
+
+    });
+
+    app.post('/toilet/emergency',function(req,res){
+        var user_id = req.body.user_id;
+        var building = req.body.building;
+        var floor = req.body.floor;
+        var problem = req.body.problem;
+        var memo = req.body.memo;
+        
+        var obj = {"Building" : building , "Floor" : floor, "Problem" : problem};
+        
+        var newData = new Board(obj);
+        newData.save(function(err){
+            if (err) console.log(err);
+        });
+
+        Token.find({},function(err,data){
+            if (err) {
+                console.log(err);
+                res.send(err);
+            }
+
+            console.log(data);
+            var token_list = new Array();
+            for (var i = 0; i < data.length; i++){
+                token_list.push(data[i].Token);
+            }
+
+            var message = {
+                notification: {
+                    title:problem,
+                    body:building + " " + floor
+                },
+                data: {
+                    title:problem,
+                    body:building + " " + floor
+                },
+                tokens : token_list
+              };
+            admin.messaging().sendMulticast(message)
+              .then((response) => {
+                console.log('Successfully sent message:', response);
+                res.end();
+              }).catch((error) => {
+                console.log('Error sending message:', error);
+                res.end();
+              });
+        });
+
+        
+    })
+
+    app.get('/toilet/token',function(req,res){
+        var token = req.query.token;
+        var new_token = {"Token" : token};
+
+        Token.findOne(new_token, function(err, data){
+            if (err) res.send(err);
+            // res.send('ok');
+
+            // if (typeof data !== 'undefined' && data.length > 0){
+            if (data != null){  
+                console.log(data);
+                console.log("already exist");
+            }
+            else{
+                console.log("no exist");
+                var newData = new Token(new_token);         
+                newData.save(function(err){ // DB에 저장한다.​
+                    if(err) res.send(err); // 에러 확인
+                    res.end("ok"); // 응답
+                });
+            }
+        })
+
+    })
+
 
 //   /* 삭제 요청 처리 */
 //  app.get("/delete", function(req, res){

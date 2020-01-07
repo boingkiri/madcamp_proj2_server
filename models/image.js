@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var exports = module.exports = {};
+// var exports = module.exports = {};
 
 var imageSchema = new Schema({
     // fieldname: String, 
