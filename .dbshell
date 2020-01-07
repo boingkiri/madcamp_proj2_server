@@ -1,0 +1,99 @@
+db.articles.find()
+yl.articles.find()
+db.student.find()
+use new_yl
+db
+db.book.insert({"name": "MongoDB Tutorial", "author": "velopert"});
+show dbs
+db.createCollection("books")
+db.createCollection("articles", { capped: true ,autoIndex: true, size: 6142800, max:10000 })
+db.people.insert({"name": "velopert"})
+show collections
+db.people.drop()
+db.books.insert({"name": "NodeJS Guide", "author": "Velopert"})
+db.books.insert([ {"name": "Book1", "author": "Velopert"}, {"name": "Book2", "author": "Velopert"} ]);
+db.books.find()
+db.articles.insert([     {         "title" : "article01",         "content" : "content01",         "writer" : "Velopert",         "likes" : 0,         "comments" : [ ]     },     {         "title" : "article02",         "content" : "content02",         "writer" : "Alpha",         "likes" : 23,         "comments" : [                 {                         "name" : "Bravo",                         "message" : "Hey Man!"                 }         ]     },     {         "title" : "article03",         "content" : "content03",         "writer" : "Bravo",         "likes" : 40,         "comments" : [                 {                         "name" : "Charlie",                         "message" : "Hey Man!"                 },                 {                         "name" : "Delta",                         "message" : "Hey Man!"                 }         ]     } ])
+db.articles.find()
+db.articles.find().pretty()
+db.articles.find({"writer": "Velopert"}).pretty()
+{         "_id" : ObjectId("56c0ab6c639be5292edab0c4"),         "title" : "article01",         "content" : "content01",         "writer" : "Velopert",         "likes" : 0,         "comments" : [ ] }
+{         "_id" : ObjectId("56c0ab6c639be5292edab0c4"),         "title" : "article01",         "content" : "content01",         "writer" : "Velopert",         "likes" : 0,         "comments" : [ ] }
+db.articles.find({"writer": "Velopert"}).pretty()
+db.articles.find( { “title” : /article0[1-2]/ } )
+db.articles.find( { "title" : /article0[1-2]/ } )
+db
+show dbs
+db.book.insert({"name": "MongoDB Tutorial", "author": "velopert"});
+yl.book.insert({"name": "MongoDB Tutorial", "author": "velopert"});
+use yl
+db
+db.book.insert({"name": "MongoDB Tutorial", "author": "velopert"});
+db.createCollection("books")
+db.createCollection("articles", { capped: true, autoIndex: true, size: 6142800, max: 10000 })
+db.people.insert({"name": "velopert"})
+show collections
+db.people.drop()
+db.book.insert({"name": "MongoDB Tutorial", "author": "parent"});
+db
+show dbs
+use yl
+db
+db.createCollection(<Contacts>, { name: <string>, phone: <string> })
+db.createCollection(<Contacts>, { name: <String>, phone: <String> })
+db.createCollection(<Contacts>, { name: <string>, phone: <string> });
+db.createCollection("Contacts", { name: <string>, phone: <string> })
+db.createCollection("Contacts")
+show collections
+db.Contacts.insert([{"name": "메시", "phone": "01011112222"}]);
+db.Contacts.find()
+db.book.drop()
+db.books.drop()
+db.article.drop()
+db.articles.drop()
+db.schemas.drop()
+show collections
+use yl
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
+db
+use yl
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
+db
+use yl
+db.dropDatabase()
+db
+use yl
+db.dropDatabase()
+db
+use yl
+db.dropDatabase()
+db
+use yl
+db
+db.drop
+db
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
+db
+use yl
+db
+db.dropDatabase()
